@@ -1,5 +1,6 @@
 import * as THREE  from "three"
 import * as dat from "dat.gui";
+import { OrbitControls } from "three/examples/jsm/Addons.js";
 const gui = new dat.GUI()
 const world = {
   plane: {
@@ -32,15 +33,19 @@ function generatePlane() {
       const y = array[i + 1]
       const z = array[i + 2]
 
-     array[i + 2]= z +Math.random()
+     array[i + 2]= z + Math.random()
     
 
-  } }
+    } }
 
+const raycaster = new THREE.WebGLRenderList()
 // انشاء مشهد
 const scene = new THREE.Scene();
 // انشاء كاميرا
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const camera = new THREE.PerspectiveCamera( 75,
+   window.innerWidth / window.innerHeight,
+    0.1,
+    1000 );
 // انشاء تقدم
 
 const renderer = new THREE.WebGLRenderer();
@@ -52,6 +57,7 @@ renderer.setPixelRatio(devicePixelRatio)
 // استدعاء البودي
 
 document.body.appendChild( renderer.domElement );
+new OrbitControls(camera,renderer,domElement)
 //  اي شكل مكون من حاجتين = من هندسة (الابعاد) + المادة ( الالوان)
 // const geometry = new THREE.BoxGeometry( 1, 1, 1 );
 // عرض الطول الارتفاع
@@ -63,33 +69,47 @@ document.body.appendChild( renderer.domElement );
 camera.position.z = 5;
 
 // اضافة الطائرة
-const geometryPlane = new THREE.PlaneGeometry( 5, 5,10,10 );
-const materialPlane = new THREE.MeshBasicMaterial( {color:0xff0000 ,
-	side: THREE.DoubleSide ,
-	flatShading: THREE.flatShading
-} );
+const geometryPlane = new THREE.PlaneGeometry( 5, 5,10, 10 );
+const materialPlane = new THREE.MeshNormalMaterial({
+  color:0xff0000,
+  side: THREE.DoubleSide,
+  flatShading: THREE.FlatShading
+})
 const plane = new THREE.Mesh( geometryPlane, materialPlane );
-scene.add( plane );
-
-const {array}=plane.geometry.attributes.position
+scene.add(plane);
+const { array }=plane.geometry.attributes.position
 for (let i = 0; i < array.length; i+= 3) {
 	
 	const x =  array[i]
 	const y = array[i +1]
 	const z = array[i+2]
-	array[i+2]= z + Math.random()
-
+	array[i +2 ]= z + Math.random()
 }
 // add ligth
 const ligth =new THREE.DirectionalLight( 0x00ff00 ,1)
 ligth.position(0,0,1)
 scene.add(ligth)
+// add backligth
+const backligth =new THREE.DirectionalLight( 0x00ff00 ,1)
+ligth.position(0,0,-1)
+scene.add(backligth)
+const mouse = {
+  x: undefined,
+  y: undefined
+}
 // انشاء انيم الدوران
 function animate() {
 
 	// cube.rotation.x += 0.01;
 	// cube.rotation.y += 0.01;
-
-	renderer.render( scene, camera );
+requestAnimationFrame(animate)
+renderer.render( scene, camera );
+raycaster.setFromCamera(mouse, camera)
+const intersects=raycaster.intersectsObject(plane)
 
 }
+animate()
+addEventListener('mousemove', (event) => {
+  mouse.x = (event.clientX / innerWidth) * 2 - 1
+  mouse.y = -(event.clientY / innerHeight) * 2 + 1
+})
